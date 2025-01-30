@@ -111,16 +111,16 @@ impl PathFinderBot {
         let priority = if cell.owner == None {
             // Without owner
             match cell.cell_type {
-                CellType::Empty => 10.0,
-                CellType::City => 200.0,
+                CellType::Empty => 6.0,
+                CellType::City => 250.0,
                 CellType::General => unreachable!(),
                 CellType::Mountains => unreachable!(),
             }
         } else if cell.owner != Some(map.curr_color) {
             // Enemy
             match cell.cell_type {
-                CellType::Empty => 50.0,
-                CellType::City => 1000.0,
+                CellType::Empty => 100.0,
+                CellType::City => 1500.0,
                 CellType::General => 1e18,
                 CellType::Mountains => unreachable!(),
             }
