@@ -1,5 +1,5 @@
 [package]
-name = "generals_io_bot"
+name = "generals"
 version = "0.1.0"
 edition = "2021"
 
