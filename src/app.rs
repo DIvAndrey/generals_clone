@@ -309,7 +309,7 @@ impl Scene for MenuScene {
         self.params.update_screen_info();
         egui_macroquad::ui(|egui_ctx| {
             egui_ctx.set_pixels_per_point(self.params.screen_min_res * UI_SCALE_COEFFICIENT * self.params.ui_scale);
-            Window::new("Игра \"Захвати столицу\"")
+            Window::new("Игра \"Колонизатор\"")
                 .anchor(Align2::CENTER_CENTER, egui::Vec2::ZERO)
                 .collapsible(false)
                 .resizable(false)
