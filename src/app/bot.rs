@@ -11,11 +11,6 @@ pub trait Bot {
     fn update_from_map(&mut self, map: &GameMap);
 }
 
-#[derive(Default)]
-pub struct PathFinderBot {
-    pub map: GameMap,
-}
-
 #[derive(Default, Clone, Copy)]
 struct VertexData {
     pub dist: i64,
@@ -37,6 +32,11 @@ impl VertexData {
 }
 
 const INF: i64 = 1e10 as i64;
+
+#[derive(Default)]
+pub struct PathFinderBot {
+    pub map: GameMap,
+}
 
 impl PathFinderBot {
     pub fn from_map(map: &GameMap, color: usize) -> PathFinderBot {
@@ -105,7 +105,7 @@ impl PathFinderBot {
     ) -> f64 {
         let cell = map.grid[coords.0][coords.1];
         if cell.cell_type == CellType::Mountains || cell.is_friend {
-            return -1.0;
+            return -1e9;
         }
         // let dist = get_dist(coords, start_coords) as i64;
         let priority = if cell.owner == None {
@@ -126,7 +126,7 @@ impl PathFinderBot {
             }
         } else {
             // Me
-            -1.0
+            -1e9
         };
         // if cell.last_update_time != map.turn && coords.0 % 5 == 0 && coords.1 % 5 == 0 {
         //     priority += 500.0;
@@ -139,39 +139,48 @@ impl Bot for PathFinderBot {
     fn get_best_move(&mut self) -> Option<Move> {
         let mut best_score = -1e9;
         let mut best_move = None;
+        let mut start_cells = vec![];
         for y in 0..self.map.n {
             for x in 0..self.map.m {
                 let cell = self.map.grid[y][x];
-                if cell.owner != Some(self.map.curr_color) {
+                if cell.owner != Some(self.map.curr_color) || cell.army_size <= 1 {
                     continue;
                 }
-                let grid = self.find_paths(&self.map, (y, x));
-                for y1 in 0..self.map.n {
-                    for x1 in 0..self.map.m {
-                        let priority = self.eval_target_cell(&self.map, (y1, x1));
-                        let info = grid[y1][x1];
-                        if info.value < 1 {
+                let mut priority = cell.army_size;
+                if cell.cell_type == CellType::General && cell.owner == Some(self.map.curr_color) {
+                    priority -= 10;
+                }
+                start_cells.push((-priority, fastrand::u32(0..=u32::MAX), y, x));
+            }
+        }
+        start_cells.sort_unstable();
+        for &(_, _, y, x) in &start_cells[..5.min(start_cells.len())] {
+            let grid = self.find_paths(&self.map, (y, x));
+            for y1 in 0..self.map.n {
+                for x1 in 0..self.map.m {
+                    let priority = self.eval_target_cell(&self.map, (y1, x1));
+                    let info = grid[y1][x1];
+                    if info.value < 1 {
+                        continue;
+                    };
+                    let score = priority / info.dist as f64;
+                    if score > best_score {
+                        let mut curr_coords = info.coords;
+                        if curr_coords == (y, x) || info.parent.0 == usize::MAX {
                             continue;
-                        };
-                        let score = priority / info.dist as f64;
-                        if score > best_score {
-                            let mut curr_coords = info.coords;
-                            if curr_coords == (y, x) || info.parent.0 == usize::MAX {
-                                continue;
-                            }
-                            let new_move = loop {
-                                let prev_coords = grid[curr_coords.0][curr_coords.1].parent;
-                                if prev_coords == (y, x) {
-                                    let (y2, x2) = curr_coords;
-                                    let curr_move = Move::new(y, x, y2, x2);
-                                    break curr_move;
-                                }
-                                curr_coords = prev_coords;
-                            };
-                            assert!(self.map.is_a_valid_move(new_move));
-                            best_move = Some(new_move);
-                            best_score = score;
                         }
+                        let new_move = loop {
+                            let prev_coords = grid[curr_coords.0][curr_coords.1].parent;
+                            if prev_coords == (y, x) {
+                                let (y2, x2) = curr_coords;
+                                let curr_move = Move::new(y, x, y2, x2);
+                                break curr_move;
+                            }
+                            curr_coords = prev_coords;
+                        };
+                        assert!(self.map.is_a_valid_move(new_move));
+                        best_move = Some(new_move);
+                        best_score = score;
                     }
                 }
             }
