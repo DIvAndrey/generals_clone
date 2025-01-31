@@ -196,7 +196,7 @@ impl GameMap {
             from: (y1, x1),
             to: (y2, x2),
         } = m;
-        if y2 >= self.n || x2 >= self.m || x1.abs_diff(x2) + y1.abs_diff(y2) != 1 {
+        if y2 >= self.n || x2 >= self.m || x1 >= self.n || y1 >= self.m || x1.abs_diff(x2) + y1.abs_diff(y2) != 1 {
             return false;
         }
         let from = self.grid[y1][x1];
@@ -209,7 +209,7 @@ impl GameMap {
             from: (y1, x1),
             to: (y2, x2),
         } = m;
-        if y2 >= self.n || x2 >= self.m || x1.abs_diff(x2) + y1.abs_diff(y2) != 1 {
+        if y2 >= self.n || x2 >= self.m || x1 >= self.n || y1 >= self.m || x1.abs_diff(x2) + y1.abs_diff(y2) != 1 {
             return false;
         }
         let from = self.grid[y1][x1];
