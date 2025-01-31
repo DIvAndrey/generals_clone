@@ -49,8 +49,17 @@ impl GameMap {
             }
         }
         for id in 0..k {
+            let mut iters = 0;
             loop {
+                iters += 1;
                 let (y, x) = (fastrand::usize(0..n), fastrand::usize(0..m));
+                let dist = Self::dist_to_general(n, m, x, y, &grid);
+                if dist <= 3 && iters < 500 {
+                    continue;
+                }
+                if iters >= 500 {
+                    println!("WARNING: couldn't find a good position!");
+                }
                 let cell = &mut grid[y][x];
                 if cell.is_empty_not_owned() {
                     cell.owner = Some(id);
@@ -79,6 +88,18 @@ impl GameMap {
             grid,
             turn: 0,
         }
+    }
+
+    fn dist_to_general(n: usize, m: usize, x: usize, y: usize, grid: &Vec<Vec<GameCell>>) -> usize {
+        let mut res = usize::MAX;
+        for y1 in 0..n {
+            for x1 in 0..m {
+                if grid[y1][x1].cell_type == CellType::General {
+                    res = res.min(y1.abs_diff(y) + x1.abs_diff(x));
+                }
+            }
+        }
+        res
     }
 
     fn is_connected(n: usize, m: usize, grid: &Vec<Vec<GameCell>>) -> bool {
