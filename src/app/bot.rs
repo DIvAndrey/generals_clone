@@ -104,10 +104,9 @@ impl PathFinderBot {
         coords: (usize, usize),
     ) -> f64 {
         let cell = map.grid[coords.0][coords.1];
-        if cell.cell_type == CellType::Mountains || cell.is_friend {
+        if cell.cell_type == CellType::Mountains || cell.is_friend || cell.last_update_time != self.map.turn {
             return -1e9;
         }
-        // let dist = get_dist(coords, start_coords) as i64;
         let priority = if cell.owner == None {
             // Without owner
             match cell.cell_type {
@@ -128,9 +127,6 @@ impl PathFinderBot {
             // Me
             -1e9
         };
-        // if cell.last_update_time != map.turn && coords.0 % 5 == 0 && coords.1 % 5 == 0 {
-        //     priority += 500.0;
-        // }
         priority
     }
 }
@@ -143,7 +139,7 @@ impl Bot for PathFinderBot {
         for y in 0..self.map.n {
             for x in 0..self.map.m {
                 let cell = self.map.grid[y][x];
-                if cell.owner != Some(self.map.curr_color) || cell.army_size <= 1 {
+                if cell.owner != Some(self.map.curr_color) || cell.army_size <= 1 || cell.last_update_time != self.map.turn {
                     continue;
                 }
                 let mut priority = cell.army_size;

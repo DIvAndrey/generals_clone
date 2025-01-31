@@ -20,7 +20,6 @@ pub struct GameCell {
     pub owner: Option<usize>,
     pub cell_type: CellType,
     pub is_friend: bool,
-    pub last_seen_type: CellType,
     pub last_update_time: u32,
 }
  

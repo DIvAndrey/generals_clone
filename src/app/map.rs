@@ -201,7 +201,7 @@ impl GameMap {
         }
         let from = self.grid[y1][x1];
         let to = self.grid[y2][x2];
-        from.last_seen_type != CellType::Mountains && to.last_seen_type != CellType::Mountains
+        from.cell_type != CellType::Mountains && to.cell_type != CellType::Mountains
     }
 
     pub fn is_a_valid_move(&self, m: Move) -> bool {
@@ -276,8 +276,7 @@ impl GameMap {
                 owner: None,
                 cell_type: CellType::Mountains,
                 is_friend: false,
-                last_seen_type: cell.last_seen_type,
-                last_update_time: cell.last_update_time,
+                last_update_time: self.turn,
             };
         } else {
             return GameCell {
@@ -285,30 +284,18 @@ impl GameMap {
                 owner: None,
                 cell_type: CellType::Empty,
                 is_friend: false,
-                last_seen_type: cell.last_seen_type,
-                last_update_time: cell.last_update_time,
+                last_update_time: self.turn,
             };
         }
     }
 
     pub fn update_from(&mut self, other: &GameMap) {
-        let old_grid = self.grid.clone();
-        let old_color = self.curr_color;
-        *self = other.clone();
-        self.curr_color = old_color;
+        self.turn = other.turn;
         for y in 0..self.n {
             for x in 0..self.m {
-                let visible = self.is_visible_to(y, x, self.curr_color);
-                self.grid[y][x] = self.get_with_fog(y, x, self.curr_color);
-                let cell = &mut self.grid[y][x];
-                if visible {
-                    cell.last_update_time = self.turn;
-                    cell.last_seen_type = cell.cell_type;
-                } else if old_grid[y][x].last_update_time > 0 {
-                    cell.last_update_time = old_grid[y][x].last_update_time;
-                    cell.last_seen_type = old_grid[y][x].last_seen_type;
-                } else {
-                    cell.last_seen_type = cell.cell_type;
+                let visible = other.is_visible_to(y, x, self.curr_color);
+                if visible || self.grid[y][x].last_update_time == 0 {
+                    self.grid[y][x] = other.get_with_fog(y, x, self.curr_color);
                 }
             }
         }

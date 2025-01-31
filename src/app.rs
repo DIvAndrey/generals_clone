@@ -257,14 +257,14 @@ impl GameScene {
                 }
             }
         }
-        for id in 0..self.params.players_num {
-            if id != self.player_color {
-                self.bots[id].update_from_map(&self.map);
-            }
-        }
         for y in 0..self.map.n {
             for x in 0..self.map.m {
                 self.map.grid[y][x].last_update_time = self.map.turn;
+            }
+        }
+        for id in 0..self.params.players_num {
+            if id != self.player_color {
+                self.bots[id].update_from_map(&self.map);
             }
         }
     }
