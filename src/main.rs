@@ -6,7 +6,7 @@ pub mod constants;
 
 use app::App;
 
-#[macroquad::main("egui with macroquad")]
+#[macroquad::main("Колонизатор")]
 async fn main() {
     let mut app = App::new();
     loop {
