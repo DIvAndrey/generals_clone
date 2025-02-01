@@ -39,11 +39,11 @@ pub struct PathFinderBot {
 }
 
 impl PathFinderBot {
-    pub fn from_map(map: &GameMap, color: usize) -> PathFinderBot {
+    pub fn from_map(map: &GameMap, color: usize) -> Self {
         let mut map = map.clone();
         map.curr_color = color;
         map.grid = vec![vec![GameCell::default(); map.m]; map.n];
-        PathFinderBot { map }
+        Self { map }
     }
 
     fn find_paths(&self, map: &GameMap, start: (usize, usize)) -> Vec<Vec<VertexData>> {
@@ -144,7 +144,7 @@ impl Bot for PathFinderBot {
                 }
                 let mut priority = cell.army_size;
                 if cell.cell_type == CellType::General && cell.owner == Some(self.map.curr_color) {
-                    priority -= 10;
+                    priority = ((priority as f64 - 10.0) * 0.5) as i64;
                 }
                 start_cells.push((-priority, fastrand::u32(0..=u32::MAX), y, x));
             }
