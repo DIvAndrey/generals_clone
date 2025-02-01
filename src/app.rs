@@ -22,6 +22,7 @@ struct GameParams {
     mountain_texture: Texture2D,
     general_texture: Texture2D,
     disable_fog_of_war: bool,
+    ticks_per_second: f64,
 }
 
 impl GameParams {
@@ -35,8 +36,8 @@ impl GameParams {
 impl Default for GameParams {
     fn default() -> Self {
         Self { 
-            n: 30, 
-            m: 30, 
+            n: 20,
+            m: 25,
             players_num: 2, 
             ui_scale: 1.0, 
             new_ui_scale: 1.0,
@@ -46,6 +47,7 @@ impl Default for GameParams {
             mountain_texture: Texture2D::from_file_with_format(include_bytes!("../assets/sprites/mountain.png"), Some(ImageFormat::Png)),
             general_texture: Texture2D::from_file_with_format(include_bytes!("../assets/sprites/general.png"), Some(ImageFormat::Png)),
             disable_fog_of_war: false,
+            ticks_per_second: 3.0,
         }
     }
 }
@@ -141,7 +143,7 @@ impl GameScene {
                     draw_rectangle(x1, y1, cell_size, cell_size, Color::new(0.3, 0.3, 0.3, 0.5));
                 }
                 if Some((y, x)) == self.selected_cell {
-                    draw_rectangle(x1, y1, cell_size, cell_size, Color::new(0.2, 0.4, 0.8, 0.25));
+                    draw_rectangle(x1, y1, cell_size, cell_size, Color::new(0.2, 0.4, 0.8, 0.4));
                 }
             }
         }
@@ -281,14 +283,16 @@ impl Scene for GameScene {
                     if ui.button("Новая игра").clicked() {
                         next_scene = Some(Box::new(MenuScene { params: self.params.clone() }));
                     }
-                    ui.checkbox(&mut self.params.disable_fog_of_war, "Отключить туман войны")
+                    ui.checkbox(&mut self.params.disable_fog_of_war, "Отключить туман войны");
+                    ui.label("Ходов в секунду");
+                    ui.add(Slider::new(&mut self.params.ticks_per_second, 0.2..=20.0).logarithmic(true));
                 });
         });
 
         self.draw_game_map();
         self.process_input();
 
-        if get_time() - self.last_tick_time > DELAY_BETWEEN_TICKS {
+        if get_time() - self.last_tick_time > 1.0 / self.params.ticks_per_second {
             self.next_tick();
             self.last_tick_time = get_time();
         }
@@ -320,6 +324,8 @@ impl Scene for MenuScene {
                     ui.add(Slider::new(&mut self.params.n, 10..=50));
                     ui.label("Количество игроков");
                     ui.add(Slider::new(&mut self.params.players_num, 2..=16));
+                    ui.label("Ходов в секунду");
+                    ui.add(Slider::new(&mut self.params.ticks_per_second, 0.2..=20.0).logarithmic(true));
                     // Ui scale slider
                     ui.label("Масштаб интерфейса");
                     let response = ui.add(Slider::new(&mut self.params.new_ui_scale, 0.3..=2.0));
