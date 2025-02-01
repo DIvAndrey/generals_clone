@@ -142,7 +142,7 @@ impl GameMap {
         for y in 0..self.n {
             for x in 0..self.m {
                 let cell = &mut self.grid[y][x];
-                if cell.owner.is_some() && (self.turn % 50 == 0 || cell.city_or_general() && self.turn % 2 == 0) {
+                if cell.owner.is_some() && (self.turn % 25 == 0 || cell.city_or_general() && self.turn % 2 == 0) {
                     cell.army_size += 1;
                 }
             }
