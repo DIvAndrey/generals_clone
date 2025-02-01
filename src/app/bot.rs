@@ -6,7 +6,7 @@ use super::map::{GameMap, Move};
 use super::map::cell::{CellType, GameCell};
 
 pub trait Bot {
-    fn get_best_move(&mut self) -> Option<Move>;
+    fn get_best_move(&mut self, strength: f64) -> Option<Move>;
 
     fn update_from_map(&mut self, map: &GameMap);
 }
@@ -129,10 +129,35 @@ impl PathFinderBot {
         };
         priority
     }
+
+    fn get_all_moves(&self) -> Vec<Move> {
+        let mut moves = vec![];
+        for y in 0..self.map.n {
+            for x in 0..self.map.m {
+                for (dy, dx) in DIRECTIONS {
+                    let ny = y.wrapping_add(dy);
+                    let nx = x.wrapping_add(dx);
+                    let mv = Move::new(y, x, ny, nx);
+                    if self.map.is_a_valid_move(mv) {
+                        moves.push(mv);
+                    }
+                }
+            }
+        }
+        moves
+    }
+
+    fn get_random_move(&self) -> Option<Move> {
+        let moves = self.get_all_moves();
+        fastrand::choice(&moves).copied()
+    }
 }
 
 impl Bot for PathFinderBot {
-    fn get_best_move(&mut self) -> Option<Move> {
+    fn get_best_move(&mut self, strength: f64) -> Option<Move> {
+        if fastrand::f64() * 100.0 > strength {
+            return self.get_random_move();
+        }
         let mut best_score = -1e9;
         let mut best_move = None;
         let mut start_cells = vec![];

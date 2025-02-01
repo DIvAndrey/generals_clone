@@ -23,6 +23,7 @@ struct GameParams {
     general_texture: Texture2D,
     disable_fog_of_war: bool,
     ticks_per_second: f64,
+    bots_strength: f64,
 }
 
 impl GameParams {
@@ -48,6 +49,7 @@ impl Default for GameParams {
             general_texture: Texture2D::from_file_with_format(include_bytes!("../assets/sprites/general.png"), Some(ImageFormat::Png)),
             disable_fog_of_war: false,
             ticks_per_second: 3.0,
+            bots_strength: 100.0,
         }
     }
 }
@@ -247,7 +249,7 @@ impl GameScene {
                 }
             } else {
                 let bot = &mut self.bots[id];
-                let Some(best_move) = bot.get_best_move() else {
+                let Some(best_move) = bot.get_best_move(self.params.bots_strength) else {
                     self.map.skip_turn();
                     continue;
                 };
@@ -283,9 +285,11 @@ impl Scene for GameScene {
                     if ui.button("Новая игра").clicked() {
                         next_scene = Some(Box::new(MenuScene { params: self.params.clone() }));
                     }
-                    ui.checkbox(&mut self.params.disable_fog_of_war, "Отключить туман войны");
                     ui.label("Ходов в секунду");
                     ui.add(Slider::new(&mut self.params.ticks_per_second, 0.2..=20.0).logarithmic(true));
+                    ui.label("Интеллект ботов (%)");
+                    ui.add(Slider::new(&mut self.params.bots_strength, 0.0..=100.0));
+                    ui.checkbox(&mut self.params.disable_fog_of_war, "Отключить туман войны");
                 });
         });
 
@@ -326,6 +330,8 @@ impl Scene for MenuScene {
                     ui.add(Slider::new(&mut self.params.players_num, 2..=16));
                     ui.label("Ходов в секунду");
                     ui.add(Slider::new(&mut self.params.ticks_per_second, 0.2..=20.0).logarithmic(true));
+                    ui.label("Интеллект ботов (%)");
+                    ui.add(Slider::new(&mut self.params.bots_strength, 0.0..=100.0));
                     // Ui scale slider
                     ui.label("Масштаб интерфейса");
                     let response = ui.add(Slider::new(&mut self.params.new_ui_scale, 0.3..=2.0));
